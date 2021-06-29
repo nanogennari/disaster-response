@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import nltk
 import sys
-import pickle
+import joblib
 from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -45,7 +45,7 @@ def tokenize(text):
     return clean_tokens
 
 
-def build_model():
+def build_model(n_jobs=1):
     forest = RandomForestClassifier()
 
     pipeline = Pipeline([
@@ -56,15 +56,12 @@ def build_model():
 
     parameters = {
         'vect__ngram_range': ((1, 1), (1, 2)),
-        'vect__max_df': (0.5, 0.75, 1.0),
-        'vect__max_features': (None, 5000, 10000),
         'tfidf__use_idf': (True, False),
-        'clf__estimator__n_estimators': [50, 100, 200],
+        'clf__estimator__n_estimators': [50, 100],
         'clf__estimator__min_samples_split': [2, 3, 4],
     }
 
-    with parallel_backend('threading', n_jobs=16):
-        cv = GridSearchCV(pipeline, param_grid=parameters)
+    cv = GridSearchCV(pipeline, param_grid=parameters, verbose=2, n_jobs=n_jobs)
 
     return cv
 
@@ -77,19 +74,34 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
-    outfile = open(model_filepath, "wb")
-    pickle.dump(model, outfile)
+    compressions = {
+        'z': 'zlib',
+        'gz': 'gzip',
+        'bz2': 'bz2',
+        'xz': 'xz',
+        'lzma': 'lzma',
+    }
+    if model_filepath.split(".")[-1] in compressions:
+        compression = (compressions[model_filepath.split(".")[-1]], 3)
+        joblib.dump(model, model_filepath, compress=compression)
+    else:
+        joblib.dump(model, model_filepath)
 
 
 def main():
-    if len(sys.argv) == 4:
-        database_filepath, database_table, model_filepath = sys.argv[1:]
+    if len(sys.argv) in [4, 5]:
+        if len(sys.argv) == 4:
+            database_filepath, database_table, model_filepath = sys.argv[1:]
+            n_jobs = 1
+        else:
+            database_filepath, database_table, model_filepath, n_jobs = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}\n    TABLE:{}'.format(database_filepath, database_table))
+        n_jobs = int(n_jobs)
         X, Y, category_names = load_data(database_filepath, database_table)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
         print('Building model...')
-        model = build_model()
+        model = build_model(n_jobs)
 
         print('Training model...')
         model.fit(X_train, Y_train)

@@ -13,10 +13,10 @@ This work is a message classification algorithm using nltk and sklearn to parse 
     - To run ETL pipeline that cleans data and stores in database
         `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db messages`
     - To run ML pipeline that trains classifier and saves
-        `python models/train_classifier.py data/DisasterResponse.db messages models/classifier.pkl`
+        `python models/train_classifier.py data/DisasterResponse.db messages models/classifier.pkl.xz`
 
 2. Run the following command in the app's directory to run your web app.
-    `python app/run.py data/DisasterResponse.db messages models/classifier.pkl`
+    `python app/run.py data/DisasterResponse.db messages models/classifier.pkl.xz`
 
 3. Go to http://0.0.0.0:3001/
 
@@ -37,7 +37,8 @@ This work is a message classification algorithm using nltk and sklearn to parse 
 * `data/disaster_messages.csv`: Csv containing messages to train model.
 * `data/disaster_categories.csv`: Csv containing categories to train model.
 * `models/train_classifier.py`: Script to train and store model.
-    * Usage: `python models/train_classifier.py DATABASE_FILE TABLE_NAME MODEL_PICKLE_FILE`
+    * Usage: `python models/train_classifier.py DATABASE_FILE TABLE_NAME MODEL_PICKLE_FILE [N_JOBS]`
+    * If `MODEL_PICKLE_FILE` ends with `.z`, `.gz`, `.bz2`, `.xz` or `.lzma` will use the appropriate compression to store the model.
 
 ## Acknowledgments
 

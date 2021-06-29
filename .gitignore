@@ -128,11 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Database
-*.db
-
-# Pickle
-*.pkl
-
 #vscode
 .vscode/

@@ -31,23 +31,17 @@ def tokenize(text):
 @app.route('/')
 @app.route('/index')
 def index():
-
     # extract data needed for visuals
+    # Top 20 categories graph
     category_names = df.columns[4:]
     category_counts = np.sum(df[category_names].values, axis=0)
     category_counts_df = pd.DataFrame(list(zip(category_names, category_counts)), columns=["Category", "Counts"])
     category_counts_df = category_counts_df.sort_values(by="Counts", ascending=False)
 
+    # Number of categories histogram
     n_category_count = np.sum(df[category_names].values, axis=1)
-    np.histogram(n_category_count)
 
-    n_categories = len(category_names)
-    cat_heat_map = np.zeros((n_categories, n_categories))
-    for i in range(n_categories):
-        for j in range(n_categories):
-            if i != j:
-                cat_heat_map[i, j] = np.sum((df[category_names[i]] == 1) & (df[category_names[j]] == 1))
-
+    # Heatmap of most likely categories to appear toguether
     n_categories = len(category_names)
     cat_heat_map = np.zeros((n_categories, n_categories))
     categories_i = list(range(n_categories))
@@ -55,7 +49,6 @@ def index():
         for j in categories_i:
             if i != j:
                 cat_heat_map[i, j] = np.sum((df[category_names[i]] == 1) & (df[category_names[j]] == 1))
-
 
     # create visuals
     graphs = [
@@ -162,14 +155,17 @@ def main():
     if len(sys.argv) == 4:
         database_filepath, database_table, model_filepath = sys.argv[1:]
         # load data
+        print('Loading data...\n    DATABASE: {}\n    TABLE:{}'.format(database_filepath, database_table))
         engine = create_engine('sqlite:///{}'.format(database_filepath))
         global df
         df = pd.read_sql_table(database_table, engine)
 
         # load model
+        print("Loading model...\n    MODEL_PICKLE: {}".format(model_filepath))
         global model
         model = joblib.load(model_filepath)
 
+        print("Starting app...")
         app.run(host='0.0.0.0', port=3001, debug=True)
     else:
         print('Please provide the filepath of the disaster messages database '\
