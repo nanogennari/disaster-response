@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This work is a message classification algorithm using nltk and sklearn to parse and classify messages in a disaster response context. This work was made as a part of the Udacity's Data Scientist Nanodegree Program.
+This work is a message classification algorithm using nltk and sklearn to parse and classify messages in a disaster response context.
 
 ## Running locally
 
@@ -39,3 +39,6 @@ This work is a message classification algorithm using nltk and sklearn to parse 
 * `models/train_classifier.py`: Script to train and store model.
     * Usage: `python models/train_classifier.py DATABASE_FILE TABLE_NAME MODEL_PICKLE_FILE`
 
+## Acknowledgments
+
+This analysis was made as a part of the Udacity's Data Scientist Nanodegree Program.
