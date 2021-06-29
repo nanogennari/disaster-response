@@ -23,7 +23,11 @@ def split_column(df, column, marker=";", value_marker="-", value_type=int):
     df_split.columns = category_colnames
 
     # Extract values
-    df_split = df_split.apply(lambda column: column.apply(lambda x: x.split(value_marker)[-1]).astype(value_type), axis=1)
+    df_split = df_split.apply(
+        lambda column: column.apply(
+            lambda x: x.split(value_marker)[-1]
+            ).astype(value_type), axis=1
+        )
 
     # Merge new columns on to original DataFrame and drop original column
     df = df.merge(df_split, left_index=True, right_index=True)
@@ -59,7 +63,8 @@ def save_data(df, database_filename, database_table):
 def main():
     if len(sys.argv) == 5:
 
-        messages_filepath, categories_filepath, database_filepath, database_table = sys.argv[1:]
+        messages_filepath, categories_filepath, \
+            database_filepath, database_table = sys.argv[1:]
 
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))

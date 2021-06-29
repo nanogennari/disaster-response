@@ -133,3 +133,6 @@ dmypy.json
 
 # Pickle
 *.pkl
+
+#vscode
+.vscode/

@@ -1,20 +1,31 @@
 import sys
 import json
 import plotly
+import joblib
 import pandas as pd
+import numpy as np
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
-import joblib
+from plotly.graph_objs import Bar, Histogram, Heatmap
 from sqlalchemy import create_engine
 
 
 app = Flask(__name__)
 
+def tokenize(text):
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+
+    return clean_tokens
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
@@ -22,39 +33,111 @@ app = Flask(__name__)
 def index():
 
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
+    category_names = df.columns[4:]
+    category_counts = np.sum(df[category_names].values, axis=0)
+    category_counts_df = pd.DataFrame(list(zip(category_names, category_counts)), columns=["Category", "Counts"])
+    category_counts_df = category_counts_df.sort_values(by="Counts", ascending=False)
+
+    n_category_count = np.sum(df[category_names].values, axis=1)
+    np.histogram(n_category_count)
+
+    n_categories = len(category_names)
+    cat_heat_map = np.zeros((n_categories, n_categories))
+    for i in range(n_categories):
+        for j in range(n_categories):
+            if i != j:
+                cat_heat_map[i, j] = np.sum((df[category_names[i]] == 1) & (df[category_names[j]] == 1))
+
+    n_categories = len(category_names)
+    cat_heat_map = np.zeros((n_categories, n_categories))
+    categories_i = list(range(n_categories))
+    for i in categories_i:
+        for j in categories_i:
+            if i != j:
+                cat_heat_map[i, j] = np.sum((df[category_names[i]] == 1) & (df[category_names[j]] == 1))
+
 
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
                 Bar(
-                    x=genre_names,
-                    y=genre_counts
+                    x=category_counts_df['Category'].values[:20],
+                    y=category_counts_df['Counts'].values[:20],
                 )
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Top 20 Message Categories',
+                'height': 450,
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Count",
                 },
                 'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
+                    'title': "Category",
+                    'automargin': True,
+                    'tickangle': 40,
+                },
+            },
+        },
+        {
+            'data': [
+                Histogram(
+                    x = n_category_count
+                )
+            ],
+
+            'layout': {
+                'title': 'Number of Categories per Message',
+                'height': 450,
+                'yaxis': {
+                    'title': "Number of Messages",
+                },
+                'xaxis': {
+                    'title': "Number of Categories",
+                },
+            },
+        },
+        {
+            'data': [
+                Heatmap(
+                    z = cat_heat_map
+                )
+            ],
+
+            'layout': {
+                'title': 'Categories most likely to appear together',
+                'height': 800,
+                'yaxis': {
+                    'tickvals': categories_i,
+                    'ticktext': category_names,
+                    'automargin': True,
+                },
+                'xaxis': {
+                    'tickvals': categories_i,
+                    'ticktext': category_names,
+                    'tickangle': 30,
+                    'automargin': True,
+                },
+            },
+            'class': "col-lg-12",
+        },
     ]
 
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
+    classes = []
+    for graph in graphs:
+        if 'class' in graph:
+            classes.append(graph['class'])
+            del graph['class']
+        else:
+            classes.append("col-lg-6 col-sm-12")
+    ids_classes = list(zip(ids, classes))
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
 
     # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
+    return render_template('master.html', ids_classes=ids_classes, ids=ids, graphJSON=graphJSON)
 
 
 # web page that handles user query and displays model results
