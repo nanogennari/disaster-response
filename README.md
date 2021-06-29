@@ -1,5 +1,7 @@
 # Disaster Response Pipeline Project
 
+![Screenshot](./screenshot.png)
+
 ## Introduction
 
 This work is a message classification algorithm using nltk and sklearn to parse and classify messages in a disaster response context. This work was made as a part of the Udacity's Data Scientist Nanodegree Program.
