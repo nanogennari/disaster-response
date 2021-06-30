@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sqlalchemy import create_engine
 import sys
 
@@ -36,6 +37,15 @@ def split_column(df, column, marker=";", value_marker="-", value_type=int):
 
 
 def load_data(messages_filepath, categories_filepath):
+    """Loads and merge messages and categories from csv files.
+
+    Args:
+        messages_filepath (str): Messages csv file path.
+        categories_filepath (str): Categories csv file path.
+
+    Returns:
+        pd.DataFrame: DataFrame with the loaded data.
+    """
     # Load messages and categories
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
@@ -45,8 +55,20 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
-    # Expand caterogiries on to multiple columns
+    """Expands categories, removes rows with non binary categories and duplicates.
+
+    Args:
+        df (pd.DataFrame): DataFrame to be cleaned.
+
+    Returns:
+         pd.DataFrame: DataFrame with the cleaned data.
+    """
+    # Expand categories on to multiple columns
     df = split_column(df, "categories")
+
+    # Remove non binary categories values, we don't know the meaning of such values
+    category_names = df.columns[4:]
+    df = df[np.any((df[category_names] == 0) | (df[category_names] == 1), axis=1)]
 
     # Drop duplicates
     df = df.drop_duplicates()
@@ -55,6 +77,13 @@ def clean_data(df):
 
 
 def save_data(df, database_filename, database_table):
+    """Saves data in a SQLite database.
+
+    Args:
+        df (pd.DataFrame): DataFrame to be stored.
+        database_filename (str): Database file path.
+        database_table (str): Database file to store data.
+    """
     # Store on to a SQLite database
     engine = create_engine('sqlite:///{}'.format(database_filename))
     df.to_sql(database_table, engine, index=False)

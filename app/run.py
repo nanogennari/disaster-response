@@ -17,6 +17,14 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+    """Tokenize and lemmatize a text input.
+
+    Args:
+        text (str): Text to be tokenized and lemmatized.
+
+    Returns:
+        list: List of tokens
+    """
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -31,6 +39,11 @@ def tokenize(text):
 @app.route('/')
 @app.route('/index')
 def index():
+    """Renders the index page of the app.
+
+    Returns:
+        str: Rendered page.
+    """
     # extract data needed for visuals
     # Top 20 categories graph
     category_names = df.columns[4:]
@@ -136,6 +149,11 @@ def index():
 # web page that handles user query and displays model results
 @app.route('/go')
 def go():
+    """Renders the /go page with classification for a given message.
+
+    Returns:
+        str: Rendered page.
+    """
     # save user input in query
     query = request.args.get('query', '')
 

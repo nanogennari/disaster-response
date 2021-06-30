@@ -21,6 +21,15 @@ nltk.download('wordnet')
 
 
 def load_data(database_filepath, database_table):
+    """Loads cleaned data from SQLite database.
+
+    Args:
+        database_filepath (str): Database file path.
+        database_table (str): Table to be loaded
+
+    Returns:
+        np.array, np.array, list: X values, y values, category names
+    """
     # load data from database
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table(database_table, engine)
@@ -34,6 +43,14 @@ def load_data(database_filepath, database_table):
 
 
 def tokenize(text):
+    """Tokenize and lemmatize a text input.
+
+    Args:
+        text (str): Text to be tokenized and lemmatized.
+
+    Returns:
+        list: List of tokens
+    """
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -46,6 +63,14 @@ def tokenize(text):
 
 
 def build_model(n_jobs=1):
+    """Builds an pipeline and configure a grid search for optimal parameters.
+
+    Args:
+        n_jobs (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        [type]: [description]
+    """
     forest = RandomForestClassifier()
 
     pipeline = Pipeline([
@@ -67,6 +92,14 @@ def build_model(n_jobs=1):
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """Prints the evaluation for the model.
+
+    Args:
+        model (object): Sklearn model object.
+        X_test (np.array): X test data.
+        Y_test (np.array): Y test data.
+        category_names (list): Category names.
+    """
     y_pred = model.predict(X_test)
     for i in range(len(Y_test[0])):
         print("Classification report: '{}'".format(category_names[i]))
@@ -74,6 +107,12 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """Saves the model in a pickle
+
+    Args:
+        model (object): Sklearn model object.
+        model_filepath (str): File path to save the file.
+    """
     compressions = {
         'z': 'zlib',
         'gz': 'gzip',
